@@ -1,15 +1,24 @@
+import Container from "@mui/material/Container";
+import CssBaseline from "@mui/material/CssBaseline";
+import Box from "@mui/material/Box";
 import { LoginForm } from "./form";
 
 export default function LoginPage() {
     return (
         <>
-            <section className="bg-ct-blue-600 min-h-screen pt-20">
-                <div className="container mx-auto px-6 py-12 h-full flex justify-center items-center">
-                    <div className="md:w-8/12 lg:w-5/12 bg-white px-8 py-10">
-                        <LoginForm />
-                    </div>
-                </div>
-            </section>
+            <Container component="main" maxWidth="xs">
+                <CssBaseline />
+                <Box
+                    sx={{
+                        marginTop: 8,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    <LoginForm />
+                </Box>
+            </Container>
         </>
     );
 }

@@ -3,91 +3,112 @@
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useFormik } from "formik";
+import * as yup from "yup";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+
+const userSchema = yup.object({
+    email: yup
+        .string()
+        .email("Цахим шуудангийн хаягаа зөв бичнэ үү")
+        .required("Цахим шуудангийн хаягаа оруулна уу"),
+    password: yup.string().required("Нууц үгээ оруулна уу"),
+});
 
 export const LoginForm = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [formValues, setFormValues] = useState({
-        username: "demo1@demo.com",
-        password: "123",
-    });
-    const [error, setError] = useState("");
+    const [error, setError] = useState(null);
 
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/UserPost";
 
-    const onSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            setFormValues({ username: "", password: "" });
+    const formik = useFormik({
+        initialValues: {
+            email: "",
+            password: "",
+        },
+        validationSchema: userSchema,
+        onSubmit: async (values) => {
+            console.log(values);
+            try {
+                setLoading(true);
+                const res = await signIn("credentials", {
+                    redirect: false,
+                    username: values.email,
+                    password: values.password,
+                    callbackUrl,
+                });
 
-            const res = await signIn("credentials", {
-                redirect: true,
-                username: formValues.username,
-                password: formValues.password,
-                callbackUrl,
-            });
+                setLoading(false);
 
-            setLoading(false);
-
-            // console.log(res);
-            if (!res?.error) {
-                router.push(callbackUrl);
-            } else {
-                setError("invalid email or password");
+                // console.log(res);
+                if (!res?.error) {
+                    router.push(callbackUrl);
+                } else {
+                    setError("invalid email or password");
+                }
+            } catch (error) {
+                setLoading(false);
             }
-        } catch (error) {
-            setLoading(false);
-            setError(error);
-        }
-    };
-
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        setFormValues({ ...formValues, [name]: value });
-    };
-
-    const input_style =
-        "form-control block w-full px-4 py-5 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none";
+        },
+        enableReinitialize: true,
+    });
 
     return (
-        <form onSubmit={onSubmit}>
+        <Box noValidate sx={{ mt: 1 }}>
+            <div>
+                <form onSubmit={formik.handleSubmit}>
+                    <TextField
+                        margin="normal"
+                        fullWidth
+                        id="email"
+                        label="Email Address"
+                        name="email"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={
+                            formik.touched.email && Boolean(formik.errors.email)
+                        }
+                        helperText={formik.touched.email && formik.errors.email}
+                    />
+                    <TextField
+                        margin="normal"
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={
+                            formik.touched.password &&
+                            Boolean(formik.errors.password)
+                        }
+                        helperText={
+                            formik.touched.password && formik.errors.password
+                        }
+                    />
+
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                    >
+                        {loading ? "loading..." : "Sign In"}
+                    </Button>
+                </form>
+            </div>
             {error && (
                 <p className="text-center bg-red-300 py-4 mb-6 rounded">
                     {error}
                 </p>
             )}
-            <div className="mb-6">
-                <input
-                    required
-                    type="email"
-                    name="username"
-                    value={formValues.username}
-                    onChange={handleChange}
-                    placeholder="Email address"
-                    className={`${input_style}`}
-                />
-            </div>
-            <div className="mb-6">
-                <input
-                    required
-                    type="password"
-                    name="password"
-                    value={formValues.password}
-                    onChange={handleChange}
-                    placeholder="Password"
-                    className={`${input_style}`}
-                />
-            </div>
-            <button
-                type="submit"
-                style={{ backgroundColor: `${loading ? "#ccc" : "#3446eb"}` }}
-                className="inline-block px-7 py-4 bg-blue-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
-                disabled={loading}
-            >
-                {loading ? "loading..." : "Sign In"}
-            </button>
-        </form>
+        </Box>
     );
 };

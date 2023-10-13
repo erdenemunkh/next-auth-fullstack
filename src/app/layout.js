@@ -1,5 +1,6 @@
 import AppBar from "@/components/AppBar";
 import "./globals.css";
+import ThemeRegistry from '@/components/ThemeRegistry/ThemeRegistry';
 import Providers from "@/components/Providers";
 
 export const metadata = {
@@ -11,10 +12,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Providers>
-          <AppBar />
-          {children}
-        </Providers>
+        <ThemeRegistry>
+          <Providers>
+            <AppBar />
+            {children}
+          </Providers>
+        </ThemeRegistry>
       </body>
     </html>
   );
