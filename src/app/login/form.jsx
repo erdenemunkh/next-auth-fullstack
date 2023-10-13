@@ -4,18 +4,10 @@ import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormik } from "formik";
-import * as yup from "yup";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-
-const userSchema = yup.object({
-    email: yup
-        .string()
-        .email("Цахим шуудангийн хаягаа зөв бичнэ үү")
-        .required("Цахим шуудангийн хаягаа оруулна уу"),
-    password: yup.string().required("Нууц үгээ оруулна уу"),
-});
+import { userSchema } from "./../../../prisma/schemas/user";
 
 export const LoginForm = () => {
     const router = useRouter();

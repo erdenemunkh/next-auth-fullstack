@@ -1,23 +1,41 @@
 import { signJwtAccessToken } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 import * as bcrypt from "bcrypt";
+import { userSchema } from "../../../../prisma/schemas/user";
+import { NextResponse } from "next/server";
 
 export async function POST(request) {
-    const body = await request.json();
+    try {
+        const body = await request.json();
+        let validated
 
-    const user = await prisma.user.findFirst({
-        where: {
-            email: body.username,
-        },
-    });
+        try {
+            validated = await userSchema.validate({
+                email: body.username,
+                password: body.password
+            });
+        } catch (error) {
+            return NextResponse.json(error.errors);
+        }
 
-    if (user && (await bcrypt.compare(body.password, user.password))) {
-        const { password, ...userWithoutPass } = user;
-        const accessToken = signJwtAccessToken(userWithoutPass);
-        const result = {
-            ...userWithoutPass,
-            accessToken,
-        };
-        return new Response(JSON.stringify(result));
-    } else return new Response(JSON.stringify(null));
+        const user = await prisma.user.findFirst({
+            where: {
+                email: validated.email,
+            },
+        });
+
+        if (user && (await bcrypt.compare(validated.password, user.password))) {
+            const { password, ...userWithoutPass } = user;
+            const accessToken = signJwtAccessToken(userWithoutPass);
+            const result = {
+                ...userWithoutPass,
+                accessToken,
+            };
+            return NextResponse.json(result);
+        } else {
+            return NextResponse.json(null);
+        }
+    } catch (error) {
+        return NextResponse.json(error);
+    }
 }

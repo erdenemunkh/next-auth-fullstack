@@ -1,5 +1,6 @@
 import { verifyJwt } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
     const accessToken = request.headers.get("authorization");
@@ -25,5 +26,5 @@ export async function GET(request, { params }) {
         },
     });
 
-    return new Response(JSON.stringify(userPosts));
+    return NextResponse.json(userPosts);
 }
